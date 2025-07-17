@@ -1,0 +1,7 @@
+ultralytics
+opencv-python
+torch
+supervision
+fastapi
+uvicorn
+uvicorn[standard]
