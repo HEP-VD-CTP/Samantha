@@ -15,10 +15,10 @@
       <q-scroll-area visible style="height: calc(100vh - 150px)">
         <q-list separator>
           <q-item 
-            v-if="wp.selectedProject?.detections" v-for="(detection, index) in (wp.selectedProject?.detections[currentFrame] || []).filter(det => (wp.selectedProject?.classes || []).includes(det.classid))" dense clickable v-ripple
+            v-if="wp.selectedProject?.detections" v-for="(detection, index) in (wp.selectedProject?.detections[currentFrame] || []).filter(det => (wp.selectedProject?.classes || []).includes(det.cid))" dense clickable v-ripple
             class="q-pa-xs"
-            :focused="detection.id == highlightedDetection?.id && detection.classid == highlightedDetection?.classid">
-            <q-item-section @click="highlightDetection(detection)">{{getIcon(detection)}} {{ detection.classname }} {{ detection.id }}</q-item-section>
+            :focused="detection.id == highlightedDetection?.id && detection.cid == highlightedDetection?.cid">
+            <q-item-section @click="highlightDetection(detection)">{{getIcon(detection)}} {{ cocoClassMap[detection.cid.toString()] }} {{ detection.id }}</q-item-section>
             <q-item-section avatar>
               <q-btn flat dense round icon="mdi-dots-vertical">
                 <q-menu>
@@ -26,17 +26,17 @@
                     <q-item-section>Split</q-item-section>
                   </q-item>
                   <q-list style="min-width: 100px">
-                    <q-item @click="applyFilter(detection.classid, detection.id, true, null)" clickable v-close-popup>
+                    <q-item @click="applyFilter(detection.cid, detection.id, true, null)" clickable v-close-popup>
                       <q-item-section>Blur</q-item-section>
                     </q-item>
                   </q-list>
                   <q-list style="min-width: 100px">
-                    <q-item @click="applyFilter(detection.classid, detection.id, null, true)" clickable v-close-popup>
+                    <q-item @click="applyFilter(detection.cid, detection.id, null, true)" clickable v-close-popup>
                       <q-item-section>Inpaint</q-item-section>
                     </q-item>
                   </q-list>
                   <q-list style="min-width: 100px">
-                    <q-item @click="deleteDetection(detection.classid, detection.id)" clickable v-close-popup>
+                    <q-item @click="deleteDetection(detection.cid, detection.id)" clickable v-close-popup>
                       <q-item-section>Delete</q-item-section>
                     </q-item>
                   </q-list>
@@ -120,13 +120,97 @@ const currentFrame: Ref<number> = ref(0)
 const canvasRef = ref<HTMLCanvasElement|null>(null)
 const anonymizationModal: Ref<boolean> = ref(false)
 
-let iconHitboxes: Array<{x: number, y: number, w: number, h: number, classid: number, detid: number, isSplit?: boolean,   detection?: Detection, frame?: number}> = []
-const highlightedDetection = ref<{ classid: number, id: number } | null>(null)
+const cocoClassMap: { [id: string]: string } = {
+  "-1": "face",
+  "0": "person",
+  "1": "bicycle",
+  "2": "car",
+  "3": "motorcycle",
+  "4": "airplane",
+  "5": "bus",
+  "6": "train",
+  "7": "truck",
+  "8": "boat",
+  "9": "traffic light",
+  "10": "fire hydrant",
+  "11": "stop sign",
+  "12": "parking meter",
+  "13": "bench",
+  "14": "bird",
+  "15": "cat",
+  "16": "dog",
+  "17": "horse",
+  "18": "sheep",
+  "19": "cow",
+  "20": "elephant",
+  "21": "bear",
+  "22": "zebra",
+  "23": "giraffe",
+  "24": "backpack",
+  "25": "umbrella",
+  "26": "handbag",
+  "27": "tie",
+  "28": "suitcase",
+  "29": "frisbee",
+  "30": "skis",
+  "31": "snowboard",
+  "32": "sports ball",
+  "33": "kite",
+  "34": "baseball bat",
+  "35": "baseball glove",
+  "36": "skateboard",
+  "37": "surfboard",
+  "38": "tennis racket",
+  "39": "bottle",
+  "40": "wine glass",
+  "41": "cup",
+  "42": "fork",
+  "43": "knife",
+  "44": "spoon",
+  "45": "bowl",
+  "46": "banana",
+  "47": "apple",
+  "48": "sandwich",
+  "49": "orange",
+  "50": "broccoli",
+  "51": "carrot",
+  "52": "hot dog",
+  "53": "pizza",
+  "54": "donut",
+  "55": "cake",
+  "56": "chair",
+  "57": "couch",
+  "58": "potted plant",
+  "59": "bed",
+  "60": "dining table",
+  "61": "toilet",
+  "62": "tv",
+  "63": "laptop",
+  "64": "mouse",
+  "65": "remote",
+  "66": "keyboard",
+  "67": "cell phone",
+  "68": "microwave",
+  "69": "oven",
+  "70": "toaster",
+  "71": "sink",
+  "72": "refrigerator",
+  "73": "book",
+  "74": "clock",
+  "75": "vase",
+  "76": "scissors",
+  "77": "teddy bear",
+  "78": "hair drier",
+  "79": "toothbrush"
+}
 
-function deleteDetection(classid: number, id: number) {
+let iconHitboxes: Array<{x: number, y: number, w: number, h: number, cid: number, detid: number, isSplit?: boolean,   detection?: Detection, frame?: number}> = []
+const highlightedDetection = ref<{ cid: number, id: number } | null>(null)
+
+function deleteDetection(cid: number, id: number) {
   for (const detections of wp.selectedProject?.detections || []) {
     for (const detection of detections) {
-      if (detection.classid === classid && detection.id === id) {
+      if (detection.cid === cid && detection.id === id) {
         detections.splice(detections.indexOf(detection), 1)
       }
     }
@@ -136,7 +220,7 @@ function deleteDetection(classid: number, id: number) {
 }
 
 function highlightDetection(detection:  Detection){
-  highlightedDetection.value = { classid: detection.classid, id: detection.id }
+  highlightedDetection.value = { cid: detection.cid, id: detection.id }
   drawDetections()
 }
 
@@ -155,7 +239,7 @@ function split(detection: Detection, frame: number) {
   const allIds = new Set<number>()
   for (const frameDetections of wp.selectedProject.detections) {
     for (const det of frameDetections) {
-      if (det.classid === detection.classid) {
+      if (det.cid === detection.cid) {
         allIds.add(det.id)
       }
     }
@@ -171,7 +255,7 @@ function split(detection: Detection, frame: number) {
   for (let f = frame; f < wp.selectedProject.detections.length; f++) {
     const frameDetections = wp.selectedProject.detections[f]
     for (const det of frameDetections || []) {
-      if (det.classid === detection.classid && det.id === originalId) {
+      if (det.cid === detection.cid && det.id === originalId) {
         det.id = newId
         det.blur = false
         det.inpaint = false
@@ -200,9 +284,9 @@ function drawDetections() {
 
   // Split detections into normal and highlighted
   let highlighted: Detection | null = null
-  const filtered = detections.filter(det => allowedClasses.includes(det.classid))
+  const filtered = detections.filter(det => allowedClasses.includes(det.cid))
   filtered.forEach(det => {
-    if (highlightedDetection.value && det.classid === highlightedDetection.value.classid && det.id === highlightedDetection.value.id) {
+    if (highlightedDetection.value && det.cid === highlightedDetection.value.cid && det.id === highlightedDetection.value.id) {
       highlighted = det
     } 
     else {
@@ -218,12 +302,12 @@ function drawDetections() {
 
 // Helper to draw a single detection (optionally highlighted)
 function drawDetection(ctx: CanvasRenderingContext2D, det: Detection, isHighlight = false) {
-  const { x1, y1, x2, y2 } = det.positions
+  const { x1, y1, x2, y2 } = det.pos
   ctx.font = '30px Arial'
   ctx.textAlign = 'start'
   ctx.textBaseline = 'alphabetic'
   const icon = getIcon(det)
-  const labelMain = `${icon} ${det.classname} ${det.id} `
+  const labelMain = `${icon} ${cocoClassMap[det.cid.toString()]} ${det.id} `
   const splitIcon = '⎇'
   const textWidth = ctx.measureText(labelMain).width
   const splitIconWidth = ctx.measureText(splitIcon).width
@@ -260,7 +344,7 @@ function drawDetection(ctx: CanvasRenderingContext2D, det: Detection, isHighligh
     y: labelY - 30 + 8,
     w: iconWidth,
     h: 30,
-    classid: det.classid,
+    cid: det.cid,
     detid: det.id
   })
 
@@ -270,7 +354,7 @@ function drawDetection(ctx: CanvasRenderingContext2D, det: Detection, isHighligh
     y: labelY - 30 + 8,
     w: splitIconWidth,
     h: 30,
-    classid: det.classid,
+    cid: det.cid,
     detid: det.id,
     isSplit: true, // mark this as the split icon
     detection: det,
@@ -302,10 +386,10 @@ function skipFrame(nbFrames: number, direction: "forward"|"backward") {
     el.currentTime = Math.min(el.currentTime + (direction == 'forward' ? nbFrames : -nbFrames) / fps, el.duration)
 }
 
-function applyFilter(classId: number, detId: number, blur: boolean|null = null, inpaint: boolean|null = null) {
+function applyFilter(cid: number, detId: number, blur: boolean|null = null, inpaint: boolean|null = null) {
   for (const detections of wp.selectedProject?.detections || []) {
     for (const detection of detections) {
-      if (detection.classid === classId && detection.id === detId){
+      if (detection.cid === cid && detection.id === detId){
         // we want to set the blur
         if (blur !== null) {
           detection.blur = blur
@@ -421,6 +505,9 @@ function cancel() {
 onMounted(async () => {
   // get video framerate
   try {
+
+    console.log()
+
     fps = await window.workspaceAPI.getVideoFPS(store.workSpacePath || '', filePath.split('?')[0] as string) || 25
     console.log('FPS:', fps)
 
@@ -506,8 +593,9 @@ onMounted(async () => {
               split(hit.detection, hit.frame)
             }
             break
-          } else {
-            applyFilter(hit.classid, hit.detid)
+          } 
+          else {
+            applyFilter(hit.cid, hit.detid)
             break
           }
         }

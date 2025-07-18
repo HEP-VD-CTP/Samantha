@@ -34,8 +34,14 @@ async def send_throttled_frame(ws, frame, min_interval=0.25):
   now = time.time()
   if now - last_frame_sent_time < min_interval:
     return  # Skip sending this frame
-  await ws.send_bytes(compress_and_resize_frame(frame))
-  last_frame_sent_time = now
+  try:
+    await ws.send_bytes(compress_and_resize_frame(frame))
+    last_frame_sent_time = now
+  except Exception as e:
+    print(f"Failed to send frame: {e}")
+    raise  
+
+  await asyncio.sleep(0)
 
 def compress_and_resize_frame(frame, max_size=1024, quality=60):
   """
@@ -107,9 +113,9 @@ async def detect(ws, workspace, file, classes):
           tid = -random.randint(10000, 99999)
         detection = {
           "id": int(tid),
-          "classid": -1, # we set the classid to -1 for face detection
-          "classname": "face",  
-          "positions": { "x1": x1, "y1": y1, "x2": x2, "y2": y2 }
+          "cid": -1, # we set the classid to -1 for face detection
+          "cname": "face",  
+          "pos": { "x1": x1, "y1": y1, "x2": x2, "y2": y2 }
         }
         frame_detections.append(detection)
     
@@ -126,9 +132,9 @@ async def detect(ws, workspace, file, classes):
           tid = -random.randint(10000, 99999)
         detection = {
           "id": int(tid),
-          "classid": int(cls),
-          "classname": model_object.names[int(cls)],
-          "positions": { "x1": x1, "y1": y1, "x2": x2, "y2": y2}
+          "cid": int(cls),
+          "cname": model_object.names[int(cls)],
+          "pos": { "x1": x1, "y1": y1, "x2": x2, "y2": y2}
         }
         frame_detections.append(detection)
 
@@ -138,20 +144,18 @@ async def detect(ws, workspace, file, classes):
     # draw the bouding boxes
     for detection in frame_detections:
       # do not draw classes not in the selected list
-      if classes is not None and detection['classid'] not in classes:
+      if classes is not None and detection['cid'] not in classes:
         continue 
 
-      det = detection["positions"]
-      label = f"{detection['classname']} {detection['id']}"
+      det = detection["pos"]
+      label = f"{detection['cname']} {detection['id']}"
       color = (0, 255, 0)
       cv2.rectangle(frame, (det["x1"], det["y1"]), (det["x2"], det["y2"]), color, 2)
       cv2.putText(frame, label, (det["x1"], det["y1"]-10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
     
     # send image to client
     await send_throttled_frame(ws, frame)
-
-    if cv2.waitKey(1) == 27:   # ESC
-      break
+     
 
   cap.release()
   cv2.destroyAllWindows()
@@ -282,10 +286,10 @@ async def anonymize(ws, workspace, target_folder, file, detections_list):
           
       # Get bounding box
       x1, y1, x2, y2 = map(int, [
-          detection['positions']['x1'],
-          detection['positions']['y1'], 
-          detection['positions']['x2'], 
-          detection['positions']['y2']
+          detection['pos']['x1'],
+          detection['pos']['y1'], 
+          detection['pos']['x2'], 
+          detection['pos']['y2']
         ]
       )
       # --- FastSAM mask ---
@@ -299,7 +303,7 @@ async def anonymize(ws, workspace, target_folder, file, detections_list):
         if masks_np_fast.shape[0] > 0:
           mask_fast = masks_np_fast[0]
           if mask_fast.shape != frame.shape[:2]:
-              mask_fast = cv2.resize(mask_fast, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
+            mask_fast = cv2.resize(mask_fast, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
 
       # --- SAM mask ---
       results_sam = sam(frame, bboxes=[x1, y1, x2, y2], device=device)
@@ -312,7 +316,7 @@ async def anonymize(ws, workspace, target_folder, file, detections_list):
         if masks_np_sam.shape[0] > 0:
           mask_sam = masks_np_sam[0]
           if mask_sam.shape != frame.shape[:2]:
-              mask_sam = cv2.resize(mask_sam, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
+            mask_sam = cv2.resize(mask_sam, (frame.shape[1], frame.shape[0]), interpolation=cv2.INTER_NEAREST)
 
       # --- Combine masks ---
       if mask_fast is not None and mask_sam is not None:

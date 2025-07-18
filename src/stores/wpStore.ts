@@ -8,9 +8,9 @@ const store = appStore()
 
 export type Detection = {
   id: number,
-  classid: number,
-  classname: string, 
-  positions: {
+  cid: number,
+  cname: string, 
+  pos: {
     x1: number,
     y1: number,
     x2: number,

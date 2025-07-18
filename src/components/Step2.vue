@@ -106,24 +106,28 @@ async function detect(){
 
       // detection is done, save the detections and go next
       if (data?.status == 'done'){
-        const allSelections = data?.detections
+        const allDetections = data?.detections
         // add the others params for detection
-        for (const selections of allSelections) {
-          for (const selection of selections) {
-            selection['blur'] = false
-            selection['inpaint'] = false
+        for (const detections of allDetections) {
+          for (const detection of detections) {
+            delete detection['cname'] // remove cname as it is not needed anymore
+            detection['blur'] = false
+            detection['inpaint'] = false
           }
         }
 
-        // keep only the selected classes
-        for (const selections of allSelections) {
-          for (let i = selections.length - 1; i >= 0; i--)
-            if (!wp.selectedProject!.classes!.includes(selections[i].class))
-              selections.splice(i, 1)
+        // filter detections based on selected classes
+        for (const detections of allDetections) {
+          for (let i = detections.length - 1; i >= 0; i--) {
+            const det = detections[i] // remove the classname
+            if (!wp.selectedProject?.classes?.includes(det.cid)) {
+              detections.splice(i, 1) //delete this detection
+            }
+          }
         }
 
         // save and go to next step
-        wp.selectedProject!.detections = allSelections
+        wp.selectedProject!.detections = allDetections
         wp.persist()
         cancel()
         wp.step = 3
