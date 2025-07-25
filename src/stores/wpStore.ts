@@ -67,8 +67,6 @@ export const wpStore = defineStore('wpStore', () => {
       return
     }
 
-    selectedProject.value = null
-    await nextTick()
     selectedProject.value = await window.workspaceAPI.loadProject(store.workSpacePath || '', name || '')
 
     // always start at step 0

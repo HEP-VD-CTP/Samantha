@@ -40,9 +40,7 @@ contextBridge.exposeInMainWorld('workspaceAPI', {
   //readWorkspace: (filePath: string) => ipcRenderer.invoke('read-workspace', path.join(filePath, 'data.json')),
   readWorkspace: (folderPath: string) => ipcRenderer.invoke('read-workspace', folderPath),
   writeWorkspace: async (wpPath: string, project: string, data: any) => {
-    // ipcRenderer.invoke('write-workspace', path.join(filePath, 'data.json'), data),
     const filePath = path.join(wpPath, 'projects', project, 'data.json')
-    //ipcRenderer.invoke('write-workspace', filePath, JSON.stringify(data))
     
     try {
       await fs.writeFile(filePath, JSON.stringify(data), 'utf-8')

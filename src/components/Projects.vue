@@ -73,7 +73,7 @@
 
 <script setup lang="ts">
 //import { app } from 'electron';
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { type Ref } from 'vue';
 import { appStore } from 'stores/appStore'
 import { wpStore } from 'src/stores/wpStore';
@@ -94,8 +94,10 @@ function newProject(){
   videoFilePath.value = null
 }
 
-async function select(name: string){
-  q.loading.show()
+async function select(name: string) {
+  wp.selectedProject = null
+  await nextTick()
+  q.loading.show({ message: "Loading project..." })
   await wp.selectProject(name)
   q.loading.hide()
 }
