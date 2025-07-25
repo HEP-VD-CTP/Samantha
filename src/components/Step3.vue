@@ -472,7 +472,7 @@ async function startAnonymization(){
     const data = {
       file: filePath.split('?')[0],
       workspace: store.workSpacePath,
-      name: wp.selectedProject?.name,
+      name: wp.selectedProject?.folder,
       detections: wp.selectedProject?.detections,
     }
     if (ws)
@@ -505,9 +505,6 @@ function cancel() {
 onMounted(async () => {
   // get video framerate
   try {
-
-    console.log()
-
     fps = await window.workspaceAPI.getVideoFPS(store.workSpacePath || '', filePath.split('?')[0] as string) || 25
     console.log('FPS:', fps)
 

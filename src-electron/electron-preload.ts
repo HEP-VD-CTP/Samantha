@@ -214,15 +214,13 @@ contextBridge.exposeInMainWorld('sys', {
     const files = await fs.readdir(modelsFolderPath)
 
     // download the following files if they don't exist
-    await checkAndDownload(modelsFolderPath, files, 'yolov12l.pt', 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12l.pt')
-    await checkAndDownload(modelsFolderPath, files, 'yolov11l-face.pt', 'https://github.com/akanametov/yolo-face/releases/download/v0.0.0/yolov11l-face.pt')
-    await checkAndDownload(modelsFolderPath, files, 'rt-detr-l.pt', 'https://github.com/ultralytics/assets/releases/download/v8.3.0/rtdetr-l.pt')
-    await checkAndDownload(modelsFolderPath, files, 'rt-detr-x-face.pt', 'https://github.com/HEP-VD-CSeL/Samantha/raw/refs/heads/main/models/rt-detr-x-face.pt')
-    await checkAndDownload(modelsFolderPath, files, 'mobile_sam.pt', 'https://github.com/ultralytics/assets/releases/download/v8.3.0/mobile_sam.pt')
-    await checkAndDownload(modelsFolderPath, files, 'FastSAM-x.pt', 'https://github.com/ultralytics/assets/releases/download/v8.3.0/FastSAM-x.pt')
-    await checkAndDownload(modelsFolderPath, files, 'big-lama.pt', 'https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt')
-    await checkAndDownload(modelsFolderPath, files, 'ffmpeg', 'http://static.grosjean.io/samantha/ffmpeg_osx') 
-    await checkAndDownload(modelsFolderPath, files, 'ffprobe', 'http://static.grosjean.io/samantha/ffprobe_osx')
+    await checkAndDownload(modelsFolderPath, files, 'yolov12l.pt', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/yolov12l.pt')
+    await checkAndDownload(modelsFolderPath, files, 'yolov11l-face.pt', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/yolov11l-face.pt')
+    await checkAndDownload(modelsFolderPath, files, 'mobile_sam.pt', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/mobile_sam.pt')
+    await checkAndDownload(modelsFolderPath, files, 'FastSAM-x.pt', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/FastSAM-x.pt')
+    await checkAndDownload(modelsFolderPath, files, 'big-lama.pt', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/big-lama.pt')
+    await checkAndDownload(modelsFolderPath, files, 'ffmpeg', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/ffmpeg_osx') 
+    await checkAndDownload(modelsFolderPath, files, 'ffprobe', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/ffprobe_osx')
 
     console.log(`Setup DONE`);
   },

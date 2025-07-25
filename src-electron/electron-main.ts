@@ -112,7 +112,7 @@ ipcMain.handle('read-workspace', async (_event, folderPath: string) => {
 })
 
 // write 
-ipcMain.handle('write-workspace', async (_event, filePath: string, data: any) => {
+/*ipcMain.handle('write-workspace', async (_event, filePath: string, data: any) => {
   try {
     await fs.writeFile(filePath, data, 'utf-8')
     return true
@@ -121,7 +121,7 @@ ipcMain.handle('write-workspace', async (_event, filePath: string, data: any) =>
     console.error('Error writing workspace:', err)
     return false
   }
-})
+})*/
 
 // check if a file exists on the filesystem
 ipcMain.handle('file-exists', async (_event, filePath: string) => {
