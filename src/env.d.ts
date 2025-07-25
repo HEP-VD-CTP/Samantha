@@ -18,8 +18,9 @@ export declare global {
       };
     };
     workspaceAPI: {
-      readWorkspace: (filePath: string) => Promise<any>;
-      writeWorkspace: (filePath: string, data: any) => Promise<void>;
+      readWorkspace: (folderPath: string) => Promise<any>;
+      writeWorkspace: (wpPath: string, project: string, data: any) => Promise<void>;
+      loadProject: (wpPath: string, project: string) => Promise<Project>;
       fileExists: (projectPath: string, projectName: string) => Promise<boolean>;
       getVideoFPS: (workspace: string, filePath: string) => Promise<number | null>;
       cutAndEncodeVideo: (
@@ -32,8 +33,8 @@ export declare global {
       openFolder: (folderPath: string) => Promise<void>,
       pickFolder: () => Promise<string | null>,
       pickFile: () => Promise<string | null>,
-      deleteFolder: (folderPath: string) => Promise<void>,
-      createFolder: (folderPath: string) => Promise<void>,
+      deleteFolder: (wpPath: string, folderPath: string) => Promise<void>,
+      createFolder: (wpPath: string, folder: string, project: Project) => Promise<void>,
       setupWorkspace: (path: string) => Promise<void>,
       platform: () => {
         name: string,

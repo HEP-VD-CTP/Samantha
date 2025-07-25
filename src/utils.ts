@@ -23,17 +23,19 @@ export function getCurrentDataTime(): string {
 }
 
 export function sanitize(name: string): string {
-  return name.trim()
-    .slice(-255)
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[\/?<>\\:*|"]/g, `-`)
-    .replace(/^\.+$/, `-`)
-    .replace(/^(con|prn|aux|nul|com\d|lpt\d)(\..*)?$/i, `-`)
-    .replace(/[. ]+$/, '')
-    .replace(/[^a-z0-9._-]+/gi, `-`)
-    .replace(/-{2,}/g, `-`)
-    .replace(/^-+|-+$/g, '')
+  return name
+    .trim()
+    .normalize('NFKD')                           // Normalize accents
+    .replace(/[\u0300-\u036f]/g, '')             // Remove diacritics
+    .replace(/[\/?<>\\:*|"]/g, '-')              // Windows forbidden chars
+    .replace(/^\.+$/, '-')                       // Only dots
+    .replace(/[. ]+$/, '')                       // Remove trailing dots/spaces
+    .replace(/[^a-z0-9._-]+/gi, '-')             // Keep alphanum, underscore, dot, dash
+    .replace(/^(con|prn|aux|nul|com\d|lpt\d)([\s.]+)?(\..*)?$/i, '-') // Reserved names
+    .replace(/-{2,}/g, '-')                      // Collapse multiple dashes
+    .replace(/^-+|-+$/g, '')                     // Trim dashes
+    .toLowerCase()                               // Lowercase for URLs
+    .slice(0, 255)                               // Limit to 255 chars
 }
 
 

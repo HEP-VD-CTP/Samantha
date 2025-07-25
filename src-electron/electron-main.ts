@@ -98,10 +98,17 @@ ipcMain.handle('download-models', async (_event, dest: string, url: string) => {
   return { success: true }
 })
 
-// read file and parse as JSON
-ipcMain.handle('read-workspace', async (_event, filePath: string) => {
-  const data = await fs.readFile(filePath, 'utf-8')
-  return JSON.parse(data)
+// read all directories in the projects folder
+ipcMain.handle('read-workspace', async (_event, folderPath: string) => {
+  const projectsPath = path.join(folderPath, 'projects')
+  const dir = await fs.opendir(projectsPath)
+  const dirs: string[] = []
+
+  for await (const dirent of dir)
+    if (dirent.isDirectory()) 
+      dirs.push(dirent.name)
+   
+  return dirs
 })
 
 // write 

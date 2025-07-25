@@ -6,6 +6,7 @@ import path from 'node:path'
 import { type Workspace } from 'src/stores/wpStore'
 import utils from 'src/utils'
 import ffmpeg from 'fluent-ffmpeg'
+import { Project } from 'src/stores/wpStore'
 
 // download models if they don't exist
 async function checkAndDownload(modelsFolderPath: string, files: string[], file: string, url: string) {
@@ -36,8 +37,32 @@ contextBridge.exposeInMainWorld('electron', {
 })
 
 contextBridge.exposeInMainWorld('workspaceAPI', {
-  readWorkspace: (filePath: string) => ipcRenderer.invoke('read-workspace', path.join(filePath, 'data.json')),
-  writeWorkspace: (filePath: string, data: any) => ipcRenderer.invoke('write-workspace', path.join(filePath, 'data.json'), data),
+  //readWorkspace: (filePath: string) => ipcRenderer.invoke('read-workspace', path.join(filePath, 'data.json')),
+  readWorkspace: (folderPath: string) => ipcRenderer.invoke('read-workspace', folderPath),
+  writeWorkspace: async (wpPath: string, project: string, data: any) => {
+    // ipcRenderer.invoke('write-workspace', path.join(filePath, 'data.json'), data),
+    const filePath = path.join(wpPath, 'projects', project, 'data.json')
+    //ipcRenderer.invoke('write-workspace', filePath, JSON.stringify(data))
+    
+    try {
+      await fs.writeFile(filePath, JSON.stringify(data), 'utf-8')
+    }
+    catch (err){
+      const msg = `Error writing workspace: ${err instanceof Error ? err.message : 'Unknown error'}`
+      console.error(msg)
+      throw new Error(msg)
+    }
+  },
+  loadProject: async (wpPath: string, project: string) => {
+    const dataFilePath = path.join(wpPath, 'projects', project, 'data.json')
+    try {
+      return JSON.parse(await fs.readFile(dataFilePath, 'utf-8'))
+    }
+    catch (err) {
+      console.error('Error reading project data:', err)
+      throw new Error(`Could not load project ${project}: ${err instanceof Error ? err.message : 'Unknown error'}`)
+    }
+  },
   fileExists: (projectPath: string, projectName: string) => ipcRenderer.invoke('file-exists', path.join(projectPath, 'projects', projectName, 'base.mp4')),
   getVideoFPS: (workspace: string, filePath: string): Promise<number | null> => {
     ffmpeg.setFfprobePath(path.join(workspace, 'models', 'ffprobe'))
@@ -131,18 +156,25 @@ contextBridge.exposeInMainWorld('sys', {
   openFolder: (folderPath: string) => ipcRenderer.send('open-folder', folderPath),
   pickFolder: () => ipcRenderer.invoke('pick-folder'),
   pickFile: () => ipcRenderer.invoke('pick-file'),
-  deleteFolder: async (folderPath: string) => await fs.rm(folderPath, { recursive: true, force: true }),
-  createFolder: async (folderPath: string) => {
+  deleteFolder: async (wpPath: string, folder: string) => await fs.rm(path.join(wpPath, 'projects', folder), { recursive: true, force: true }),
+  createFolder: async (wpPath: string, folder: string, project: string) => {
+    const fullPath = path.join(wpPath, 'projects', folder)
+    // try to create the project folder
     try {
-      await fs.access(folderPath)
+      await fs.access(fullPath)
       // If no error, the folder exists
       throw new Error('This project already exists')
-    } 
-    catch (err: any) {
+    }
+    catch(err: any) {
       // Only create the folder if the error is "not exists"
       if (err && err.code === 'ENOENT') {
         // Folder does not exist, create it
-        await fs.mkdir(folderPath, { recursive: true })
+        await fs.mkdir(fullPath, { recursive: true })
+
+        // create the data.json file
+        const dataFilePath = path.join(fullPath, 'data.json')
+        
+        await fs.writeFile(dataFilePath, JSON.stringify(project), 'utf-8')
       } 
       else
         throw err
@@ -155,6 +187,10 @@ contextBridge.exposeInMainWorld('sys', {
     // make sure path exists
     await fs.mkdir(wpPath, { recursive: true })
 
+
+    /*
+    TO-DO: remove this later
+    */
     // Check if data.json exists, otherwise create it
     const dataFilePath = path.join(wpPath, 'data.json')
     try {
@@ -169,15 +205,15 @@ contextBridge.exposeInMainWorld('sys', {
       await fs.writeFile(dataFilePath, JSON.stringify(baseData), 'utf-8') // Create an empty JSON file
     }
 
+    // Check if projects folder exists, otherwise create it
+    await fs.mkdir(path.join(wpPath, 'projects'), { recursive: true })
+
     // Check if models folder exists, otherwise create it
     const modelsFolderPath = path.join(wpPath, 'models')
     await fs.mkdir(modelsFolderPath, { recursive: true })
     
     // List all files in the models folder
     const files = await fs.readdir(modelsFolderPath)
-
-    // Check if projects folder exists, otherwise create it
-    await fs.mkdir(path.join(wpPath, 'projects'), { recursive: true })
 
     // download the following files if they don't exist
     await checkAndDownload(modelsFolderPath, files, 'yolov12l.pt', 'https://github.com/ultralytics/assets/releases/download/v8.3.0/yolo12l.pt')

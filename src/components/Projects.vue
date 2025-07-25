@@ -40,19 +40,18 @@
       </q-item>
     </q-list>
 
-    <q-item-label header>My projects ({{ wp.workspace?.projects.length }})</q-item-label>
+    <q-item-label header>My projects ({{ wp.projects?.length }})</q-item-label>
 
-    <div v-if="!wp.workspace?.projects.length" class="q-mt-sm text-center">
+    <div v-if="!wp?.projects.length" class="q-mt-sm text-center">
       <span>You have no projects</span>
     </div>
     <div v-else>
       <q-list separator>
         <q-separator spaced />
 
-        <q-item @click="wp.selectProjectById(project.id)" :focused="wp.selectedProject?.id == project.id" v-for="(project, index) of wp.workspace?.projects" clickable>
+        <q-item @click="select(project)" :focused="wp.selectedProject?.folder == project" v-for="(project, index) of wp?.projects" clickable>
           <q-item-section>
-            <q-item-label>{{ project.name }}</q-item-label>
-            <q-item-label caption>{{ project.createdAt }}</q-item-label>
+            <q-item-label>{{ project }}</q-item-label>
           </q-item-section>
           <q-item-section avatar>
             <q-btn flat dense round icon="mdi-dots-vertical">
@@ -95,8 +94,14 @@ function newProject(){
   videoFilePath.value = null
 }
 
+async function select(name: string){
+  q.loading.show()
+  await wp.selectProject(name)
+  q.loading.hide()
+}
+
 async function createProject(){
-  const folder = utils.sanitize(newProjectName.value.trim())
+  const folder = utils.sanitize(newProjectName.value)
 
   const project: Project = {
     id: utils.uid(),
@@ -111,30 +116,26 @@ async function createProject(){
 
   try {
     // try to create the project folder first
-    await window.sys.createFolder(`${store.workSpacePath}/projects/${folder}`)
+    await window.sys.createFolder(store.workSpacePath || '', folder, project)
   }
   catch (e) {
     console.error('Error creating project folder:', e)
     return q.dialog({ title: 'Error', message: e instanceof Error ? e.message : String(e) })
   }
   
-  wp.workspace?.projects.unshift(project)
+  //wp.workspace?.projects.unshift(project)
   await wp.persist()
+
+  await wp.loadWorkspace()
 
   newProjectAlert.value = false
 }
 
-async function deleteProject(project: Project) {
+async function deleteProject(project: string) {
   try {
     // delete folder
-    await window.sys.deleteFolder(`${store.workSpacePath}/projects/${project.folder}`)
-    // delete the project in the workspace
-    const index = wp.workspace?.projects.findIndex(p => p.id === project.id)
-    if (index !== undefined && index >= 0) {
-      wp.workspace?.projects.splice(index, 1)
-      wp.persist()
-    }
-
+    await window.sys.deleteFolder(store.workSpacePath || '', project)
+    await wp.loadWorkspace()
     wp.selectedProject = null
   } 
   catch (e) {

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, toRaw } from 'vue'
 import type { Ref } from 'vue'
 import { appStore } from 'stores/appStore'
 import path from 'path'
@@ -9,7 +9,6 @@ const store = appStore()
 export type Detection = {
   id: number,
   cid: number,
-  cname: string, 
   pos: {
     x1: number,
     y1: number,
@@ -35,43 +34,53 @@ export type Workspace = {
   projects: Array<Project>,
 }
 
+let persistTimeout: ReturnType<typeof setTimeout> | null = null
+
 export const wpStore = defineStore('wpStore', () => {
   
-  const workspace: Ref<Workspace|null> = ref(null)
+  const projects: Ref<Array<string>> = ref([])
+
+  //const workspace: Ref<string|null> = ref(null)
   const selectedProject: Ref<Project|null> = ref(null)
   const step: Ref<number> = ref(0)
 
   async function loadWorkspace() {
-    const data = await window.workspaceAPI.readWorkspace(store.workSpacePath || '')
-    workspace.value = data
+    projects.value = await window.workspaceAPI.readWorkspace(store.workSpacePath || '')
   }
 
   async function persist(){
-    await window.workspaceAPI.writeWorkspace(store.workSpacePath || '', JSON.stringify(workspace.value))
+    if (persistTimeout) 
+      clearTimeout(persistTimeout)
+    
+    persistTimeout = setTimeout(async () => {
+      await window.workspaceAPI.writeWorkspace(
+        store.workSpacePath || '',
+        selectedProject.value?.folder || '',
+        toRaw(selectedProject.value) || {}
+      )
+    }, 2000)
   }
 
-  async function selectProjectById(id: string|null) {
-    // close project is not tab is selected
-    if (id == null) {
+  async function selectProject(name: string|null) {
+    if (name == null) {
       selectedProject.value = null
       return
     }
 
-    // chose and render new pages
     selectedProject.value = null
     await nextTick()
-    if (workspace.value)
-      selectedProject.value = workspace.value.projects.find(p => p.id === id) || null
+    selectedProject.value = await window.workspaceAPI.loadProject(store.workSpacePath || '', name || '')
 
     // always start at step 0
     step.value = 0
   }
 
   return {
-    workspace,
+    projects,
+    //workspace,
     step,
     selectedProject,
-    selectProjectById,
+    selectProject,
     loadWorkspace,
     persist,
   }
