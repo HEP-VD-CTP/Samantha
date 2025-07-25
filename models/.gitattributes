@@ -3,3 +3,5 @@ yolov11l-face.pt filter=lfs diff=lfs merge=lfs -text
 big-lama.pt filter=lfs diff=lfs merge=lfs -text
 FastSAM-x.pt filter=lfs diff=lfs merge=lfs -text
 mobile_sam.pt filter=lfs diff=lfs merge=lfs -text
+ffmpeg_osx filter=lfs diff=lfs merge=lfs -text
+ffprobe_osx filter=lfs diff=lfs merge=lfs -text
