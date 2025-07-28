@@ -96,8 +96,8 @@ function newProject(){
 
 async function select(name: string) {
   wp.selectedProject = null
-  await nextTick()
   q.loading.show({ message: "Loading project..." })
+  await nextTick()
   await wp.selectProject(name)
   q.loading.hide()
 }
@@ -125,9 +125,8 @@ async function createProject(){
     return q.dialog({ title: 'Error', message: e instanceof Error ? e.message : String(e) })
   }
   
-  //wp.workspace?.projects.unshift(project)
+  // save and reload all projects
   await wp.persist()
-
   await wp.loadWorkspace()
 
   newProjectAlert.value = false

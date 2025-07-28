@@ -94,12 +94,10 @@
 </template>
     
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { type Ref } from 'vue'
 import { appStore } from 'stores/appStore'
 import { wpStore } from 'src/stores/wpStore'
-import { type Project } from 'src/stores/wpStore'
-import utils from 'src/utils'
 import { useQuasar, QVueGlobals } from 'quasar'
 import { type Detection } from 'src/stores/wpStore'
 import videojs from 'video.js'
@@ -204,7 +202,7 @@ const cocoClassMap: { [id: string]: string } = {
   "79": "toothbrush"
 }
 
-let iconHitboxes: Array<{x: number, y: number, w: number, h: number, cid: number, detid: number, isSplit?: boolean,   detection?: Detection, frame?: number}> = []
+let iconHitboxes: Array<{x: number, y: number, w: number, h: number, cid: number, detid: number, isSplit?: boolean, detection?: Detection, frame?: number}> = []
 const highlightedDetection = ref<{ cid: number, id: number } | null>(null)
 
 function deleteDetection(cid: number, id: number) {
@@ -233,7 +231,8 @@ function getIcon(det: Detection){
 }
 
 function split(detection: Detection, frame: number) {
-  if (!wp.selectedProject?.detections) return
+  if (!wp.selectedProject?.detections) 
+    return
 
   // Find all ids for this class
   const allIds = new Set<number>()

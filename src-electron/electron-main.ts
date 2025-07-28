@@ -1,18 +1,18 @@
-import { app, ipcMain, BrowserWindow, dialog, shell } from 'electron';
-import path from 'path';
-import os from 'os';
+import { app, ipcMain, BrowserWindow, dialog, shell } from 'electron'
+import path from 'path'
+import os from 'os'
 import { fileURLToPath } from 'url'
 import axios from 'axios'
-import fs from 'node:fs/promises';
-import { createWriteStream } from 'node:fs';
+import fs from 'node:fs/promises'
+import { createWriteStream } from 'node:fs'
 
 
 // needed in case process is undefined under Linux
-const platform = process.platform || os.platform();
+const platform = process.platform || os.platform()
 
-const currentDir = fileURLToPath(new URL('.', import.meta.url));
+const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
-let mainWindow: BrowserWindow | undefined;
+let mainWindow: BrowserWindow | undefined
 
 async function createWindow() {
   /**
@@ -34,27 +34,28 @@ async function createWindow() {
         path.join(process.env.QUASAR_ELECTRON_PRELOAD_FOLDER, 'electron-preload' + process.env.QUASAR_ELECTRON_PRELOAD_EXTENSION)
       ),
     },
-  });
+  })
 
   if (process.env.DEV) {
-    await mainWindow.loadURL(process.env.APP_URL);
-  } else {
-    await mainWindow.loadFile('index.html');
+    await mainWindow.loadURL(process.env.APP_URL)
+  } 
+  else {
+    await mainWindow.loadFile('index.html')
   }
 
   if (process.env.DEBUGGING) {
     // if on DEV or Production with debug enabled
-    mainWindow.webContents.openDevTools();
+    mainWindow.webContents.openDevTools()
   } else {
     // we're on production; no access to devtools pls
     mainWindow.webContents.on('devtools-opened', () => {
       mainWindow?.webContents.closeDevTools();
-    });
+    })
   }
 
   mainWindow.on('closed', () => {
     mainWindow = undefined;
-  });
+  })
 }
 
 void app.whenReady().then(createWindow);
@@ -75,7 +76,7 @@ ipcMain.handle('pick-folder', async () => {
 ipcMain.on('setup-progress', (event, message) => {
   if (mainWindow) 
     mainWindow.webContents.send('setup-progress', message)
-});
+})
 
 // open a folder in the system file explorer
 ipcMain.on('open-folder', (event, folderPath) => {
@@ -92,7 +93,7 @@ ipcMain.handle('download-models', async (_event, dest: string, url: string) => {
     stream.on('error', reject)
   })
 
-  // make the files executable
+  // make the file executable
   await fs.chmod(dest, 0o755)
 
   return { success: true }
@@ -110,18 +111,6 @@ ipcMain.handle('read-workspace', async (_event, folderPath: string) => {
    
   return dirs
 })
-
-// write 
-/*ipcMain.handle('write-workspace', async (_event, filePath: string, data: any) => {
-  try {
-    await fs.writeFile(filePath, data, 'utf-8')
-    return true
-  }
-  catch (err){
-    console.error('Error writing workspace:', err)
-    return false
-  }
-})*/
 
 // check if a file exists on the filesystem
 ipcMain.handle('file-exists', async (_event, filePath: string) => {
@@ -142,20 +131,22 @@ ipcMain.handle('pick-file', async () => {
       { name: 'Videos', extensions: ['mp4', 'avi', 'mov', 'mkv', 'webm', 'wmv', 'flv', 'mpeg', 'mpg'] }
     ]
   })
+
   if (result.canceled) 
     return null
+
   return result.filePaths[0]
 })
 
 app.on('window-all-closed', () => {
   if (platform !== 'darwin') {
-    app.quit();
+    app.quit()
   }
 });
 
 app.on('activate', () => {
   if (mainWindow === undefined) {
-    void createWindow();
+    void createWindow()
   }
 });
 

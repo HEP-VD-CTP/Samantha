@@ -3,10 +3,7 @@ import os, { platform } from 'os'
 import { execSync } from 'child_process'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { type Workspace } from 'src/stores/wpStore'
-import utils from 'src/utils'
 import ffmpeg from 'fluent-ffmpeg'
-import { Project } from 'src/stores/wpStore'
 
 // download models if they don't exist
 async function checkAndDownload(modelsFolderPath: string, files: string[], file: string, url: string) {
@@ -37,7 +34,6 @@ contextBridge.exposeInMainWorld('electron', {
 })
 
 contextBridge.exposeInMainWorld('workspaceAPI', {
-  //readWorkspace: (filePath: string) => ipcRenderer.invoke('read-workspace', path.join(filePath, 'data.json')),
   readWorkspace: (folderPath: string) => ipcRenderer.invoke('read-workspace', folderPath),
   writeWorkspace: async (wpPath: string, project: string, data: any) => {
     const filePath = path.join(wpPath, 'projects', project, 'data.json')
@@ -185,24 +181,6 @@ contextBridge.exposeInMainWorld('sys', {
     // make sure path exists
     await fs.mkdir(wpPath, { recursive: true })
 
-
-    /*
-    TO-DO: remove this later
-    */
-    // Check if data.json exists, otherwise create it
-    const dataFilePath = path.join(wpPath, 'data.json')
-    try {
-      await fs.access(dataFilePath)
-      ipcRenderer.send('setup-progress', 'Data file already exists, skipping creation...')
-    } 
-    catch {
-      ipcRenderer.send('setup-progress', 'Creating data file...')
-      const baseData = {
-        projects: [],
-      } as Workspace
-      await fs.writeFile(dataFilePath, JSON.stringify(baseData), 'utf-8') // Create an empty JSON file
-    }
-
     // Check if projects folder exists, otherwise create it
     await fs.mkdir(path.join(wpPath, 'projects'), { recursive: true })
 
@@ -222,10 +200,10 @@ contextBridge.exposeInMainWorld('sys', {
     await checkAndDownload(modelsFolderPath, files, 'ffmpeg', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/ffmpeg_osx') 
     await checkAndDownload(modelsFolderPath, files, 'ffprobe', 'https://github.com/HEP-VD-CTP/Samantha/raw/refs/heads/main/models/ffprobe_osx')
 
-    console.log(`Setup DONE`);
+    console.log(`Setup DONE`)
   },
   platform: () => {
-    let name;
+    let name
     switch (os.platform()) {
       case 'win32':
         name = 'Windows'; break;
@@ -253,21 +231,21 @@ contextBridge.exposeInMainWorld('sys', {
   mem: (os.totalmem() / 1024 / 1024 / 1024).toFixed(2),
   gpu: () => {
     try {
-      const platform = os.platform();
+      const platform = os.platform()
       if (platform === 'win32' || platform === 'linux') {
         // Check for CUDA compatibility and GPU memory using nvidia-smi
-        const cudaOutput = execSync('nvidia-smi --query-gpu=name,memory.total --format=csv,noheader', { encoding: 'utf-8' });
-        const [gpuName, gpuMemory] = cudaOutput.trim().split(',').map((item) => item.trim());
-        return { cuda: true, name: gpuName, memory: parseInt(gpuMemory || '0' ) / 1024};
+        const cudaOutput = execSync('nvidia-smi --query-gpu=name,memory.total --format=csv,noheader', { encoding: 'utf-8' })
+        const [gpuName, gpuMemory] = cudaOutput.trim().split(',').map((item) => item.trim())
+        return { cuda: true, name: gpuName, memory: parseInt(gpuMemory || '0' ) / 1024}
       } 
       else if (platform === 'darwin') {
         // Check for MPS compatibility (Metal) on macOS
-        const mpsOutput = execSync('system_profiler SPDisplaysDataType | grep "Metal"', { encoding: 'utf-8' });
-        return { mps: mpsOutput.includes('Metal'), name: 'Metal-compatible GPU', memory: 'Not available' };
+        const mpsOutput = execSync('system_profiler SPDisplaysDataType | grep "Metal"', { encoding: 'utf-8' })
+        return { mps: mpsOutput.includes('Metal'), name: 'Metal-compatible GPU', memory: 'Not available' }
       }
     } 
     catch (error) {
-      return { cuda: false, mps: false, name: 'Unknown', memory: 'Unknown' };
+      return { cuda: false, mps: false, name: 'Unknown', memory: 'Unknown' }
     }
   },
 

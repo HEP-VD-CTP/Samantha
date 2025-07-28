@@ -59,11 +59,10 @@
 </template>
     
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { type Ref } from 'vue'
 import { appStore } from 'stores/appStore'
 import { wpStore } from 'src/stores/wpStore'
-import { type Project } from 'src/stores/wpStore'
 import utils from 'src/utils'
 import { useQuasar, QVueGlobals } from 'quasar'
 import videojs from 'video.js'
@@ -124,29 +123,33 @@ function persistCuts(){
 
 // compute the ranges for the video progress bar
 const progressGradient = computed(() => {
-  if (!totalFrames.value || !ranges.value.length) {
-    return 'linear-gradient(to right, #4caf50 0%, #4caf50 100%)';
-  }
-  let stops: string[] = [];
-  let last = 0;
+  if (!totalFrames.value || !ranges.value.length) 
+    return 'linear-gradient(to right, #4caf50 0%, #4caf50 100%)'
+  
+  let stops: string[] = []
+  let last = 0
 
   const sortedRanges = ranges.value
     .filter(([start, end]) => typeof start === 'number' && typeof end === 'number')
     // @ts-ignore
     .sort((a, b) => a[0] - b[0])
+  
   sortedRanges.forEach(([start, end]) => {
     // @ts-ignore
     const startPct = Math.max(0, Math.min(100, (start / totalFrames.value) * 100))
     // @ts-ignore
     const endPct = Math.max(0, Math.min(100, (end / totalFrames.value) * 100))
+    
     if (startPct > last) 
       stops.push(`#4caf50 ${last}%`, `#4caf50 ${startPct}%`)
+
     stops.push(`#f44336 ${startPct}%`, `#f44336 ${endPct}%`)
     last = endPct
   })
-  if (last < 100) {
+
+  if (last < 100) 
     stops.push(`#4caf50 ${last}%`, `#4caf50 100%`);
-  }
+  
   return `linear-gradient(to right, ${stops.join(', ')})`
 })
 
@@ -177,6 +180,7 @@ function frameToTime(frame: number, fps: number): string {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
+
   return (
     hours.toString().padStart(2, '0') + ':' +
     minutes.toString().padStart(2, '0') + ':' +
@@ -188,6 +192,7 @@ async function encode(){
   q.loading.show({
     message: 'Video encoding in progress. This may take a while...',
   })
+
   // inverts cut ranges 
   // ffmpeg need the ranges to kept and not removed
   const keep: [number, number][] = []
@@ -197,6 +202,7 @@ async function encode(){
       keep.push([last, start])
     last = Math.max(last, end) 
   }
+  
   if (last < totalFrames.value) 
     keep.push([last, totalFrames.value])
 

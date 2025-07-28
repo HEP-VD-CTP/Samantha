@@ -38,12 +38,10 @@
 </template>
     
 <script setup lang="ts">
-import { ref, onMounted, watch, nextTick, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { type Ref } from 'vue'
 import { appStore } from 'stores/appStore'
 import { wpStore } from 'src/stores/wpStore'
-import { type Project } from 'src/stores/wpStore'
-import utils from 'src/utils'
 import { useQuasar, QVueGlobals } from 'quasar'
 
 const q: QVueGlobals = useQuasar()
@@ -120,9 +118,8 @@ async function detect(){
         for (const detections of allDetections) {
           for (let i = detections.length - 1; i >= 0; i--) {
             const det = detections[i] // remove the classname
-            if (!wp.selectedProject?.classes?.includes(det.cid)) {
+            if (!wp.selectedProject?.classes?.includes(det.cid)) 
               detections.splice(i, 1) //delete this detection
-            }
           }
         }
 

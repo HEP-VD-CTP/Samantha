@@ -2,7 +2,7 @@
   <div class="col row items-center justify-center">
     <div style="width:100%; max-width: 800px;">
       <div>
-        <p class="text-center text-subtitle2">Video:{{ wp.selectedProject?.filePath }}</p> 
+        <p class="text-center text-subtitle2">Video: {{ wp.selectedProject?.filePath }}</p> 
         <div v-if="next">
           <video
             ref="videoRef"
@@ -31,12 +31,10 @@
 </template>
   
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { type Ref } from 'vue'
 import { appStore } from 'stores/appStore'
 import { wpStore } from 'src/stores/wpStore'
-import { type Project } from 'src/stores/wpStore'
-import utils from 'src/utils'
 import { useQuasar, QVueGlobals } from 'quasar'
 import videojs from 'video.js'
 import 'video.js/dist/video-js.css'

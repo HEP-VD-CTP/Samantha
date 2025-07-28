@@ -1,8 +1,7 @@
 import { defineStore } from 'pinia'
-import { ref, nextTick, toRaw } from 'vue'
+import { ref, toRaw } from 'vue'
 import type { Ref } from 'vue'
 import { appStore } from 'stores/appStore'
-import path from 'path'
 
 const store = appStore()
 
@@ -40,7 +39,6 @@ export const wpStore = defineStore('wpStore', () => {
   
   const projects: Ref<Array<string>> = ref([])
 
-  //const workspace: Ref<string|null> = ref(null)
   const selectedProject: Ref<Project|null> = ref(null)
   const step: Ref<number> = ref(0)
 
@@ -75,7 +73,6 @@ export const wpStore = defineStore('wpStore', () => {
 
   return {
     projects,
-    //workspace,
     step,
     selectedProject,
     selectProject,

@@ -1,5 +1,5 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
-from ultralytics import YOLO, RTDETR, FastSAM, SAM
+from ultralytics import YOLO, FastSAM, SAM
 import cv2
 import torch
 import numpy as np
@@ -30,6 +30,7 @@ async def send_throttled_frame(ws, frame, min_interval=0.25):
   """
   Send the frame via websocket only if at least min_interval seconds have passed since the last send.
   """
+
   global last_frame_sent_time
   now = time.time()
   if now - last_frame_sent_time < min_interval:
@@ -49,8 +50,10 @@ def compress_and_resize_frame(frame, max_size=1024, quality=60):
   then compress to JPEG with the given quality
   Returns JPEG bytes
   """
+
   # Get original dimensions
   h, w = frame.shape[:2]
+
   # Determine scaling factor
   if w >= h and w > max_size:
     scale = max_size / w
@@ -58,15 +61,19 @@ def compress_and_resize_frame(frame, max_size=1024, quality=60):
     scale = max_size / h
   else:
     scale = 1.0
+
   # Resize if needed
   if scale != 1.0:
     new_w, new_h = int(w * scale), int(h * scale)
     frame = cv2.resize(frame, (new_w, new_h), interpolation=cv2.INTER_AREA)
+
   # Encode as JPEG with specified quality
   encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), quality]
   success, jpeg = cv2.imencode('.jpg', frame, encode_param)
+
   if not success:
     raise RuntimeError("Could not encode frame as JPEG")
+  
   return jpeg.tobytes()
 
 async def detect(ws, workspace, file, classes):
@@ -111,6 +118,7 @@ async def detect(ws, workspace, file, classes):
         x1, y1, x2, y2 = map(int, xyxy)
         if tid == -1:
           tid = -random.randint(10000, 99999)
+
         detection = {
           "id": int(tid),
           "cid": -1, # we set the classid to -1 for face detection
@@ -130,6 +138,7 @@ async def detect(ws, workspace, file, classes):
         x1,y1,x2,y2 = map(int, xyxy)
         if tid == -1:
           tid = -random.randint(10000, 99999)
+
         detection = {
           "id": int(tid),
           "cid": int(cls),
@@ -155,7 +164,6 @@ async def detect(ws, workspace, file, classes):
     
     # send image to client
     await send_throttled_frame(ws, frame)
-     
 
   cap.release()
   cv2.destroyAllWindows()
@@ -189,12 +197,11 @@ def get_image(image):
   img = img.astype(np.float32) / 255
   return img
 
-
 def ceil_modulo(x, mod):
   if x % mod == 0:
     return x
+  
   return (x // mod + 1) * mod
-
 
 def scale_image(img, factor, interpolation=cv2.INTER_AREA):
   if img.shape[0] == 1:
@@ -208,12 +215,14 @@ def scale_image(img, factor, interpolation=cv2.INTER_AREA):
     img = img[None, ...]
   else:
     img = np.transpose(img, (2, 0, 1))
+
   return img
 
 def pad_img_to_modulo(img, mod):
   channels, height, width = img.shape
   out_height = ceil_modulo(height, mod)
   out_width = ceil_modulo(width, mod)
+
   return np.pad(
     img,
     ((0, 0), (0, out_height - height), (0, out_width - width)),
@@ -292,6 +301,7 @@ async def anonymize(ws, workspace, target_folder, file, detections_list):
           detection['pos']['y2']
         ]
       )
+      
       # --- FastSAM mask ---
       results_fast = fast_sam(frame, bboxes=[x1, y1, x2, y2], device=device)
       if isinstance(results_fast, list):
