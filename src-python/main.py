@@ -382,7 +382,7 @@ async def anonymize(ws, workspace, target_folder, file, detections_list):
   # encode to a temporary video file
   temp_path = os.path.join(target_folder, "temp_final.mp4")
   cmd = [
-      "ffmpeg", "-y",
+      os.path.join(workspace, 'models', 'ffmpeg'), "-y",
       "-i", out_video_path,
       "-i", file,
       "-map", "0:v:0",
@@ -468,7 +468,6 @@ async def detect_endpoint(ws: WebSocket):
     await ws.close()
   except WebSocketDisconnect as e:
     print(f"WebSocket disconnected, stopping anonymization: {e}")
-    raise
   except Exception as e:
     print("Anonymization error:", e)
     await ws.close()

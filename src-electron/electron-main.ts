@@ -17,13 +17,18 @@ const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow: BrowserWindow | undefined
 
-const pythonExecutable = path.resolve(currentDir, 'icons/main') // tray icon
-console.log(`Python executable path: ${pythonExecutable}`)
-// Start the Python process
+// Run the python backend on production
 let pythonProcess: ReturnType<typeof spawn> | null = null
-pythonProcess = spawn(pythonExecutable, [], {
-  stdio: 'pipe'
-})
+if (!process.env.DEBUGGING){
+  const pythonExecutable = path.resolve(currentDir, 'main', 'main')
+
+  // Start the Python process
+  pythonProcess = spawn(pythonExecutable, [], {
+    stdio: 'inherit',
+    cwd: currentDir,
+    env: process.env 
+  })
+}
 
 async function createWindow() {
   /**
@@ -49,10 +54,9 @@ async function createWindow() {
 
   mainWindow.webContents.on('did-finish-load', () => {
     mainWindow?.setTitle(`Samantha ${packageJson.version}`)
+    // open dev tools
+    //mainWindow?.webContents.openDevTools()
   })
- 
-
-  
 
   if (process.env.DEV) {
     await mainWindow.loadURL(process.env.APP_URL)
@@ -67,7 +71,7 @@ async function createWindow() {
   } else {
     // we're on production; no access to devtools pls
     mainWindow.webContents.on('devtools-opened', () => {
-      mainWindow?.webContents.closeDevTools();
+      //mainWindow?.webContents.closeDevTools();
     })
   }
 
@@ -160,11 +164,33 @@ app.on('window-all-closed', () => {
   if (platform !== 'darwin') {
     app.quit()
   }
-});
+})
 
 app.on('activate', () => {
   if (mainWindow === undefined) {
     void createWindow()
   }
-});
+})
+
+app.on('before-quit', () => {
+  if (pythonProcess) {
+    pythonProcess.kill()
+    pythonProcess = null
+  }
+})
+
+process.on('exit', () => {
+  if (pythonProcess) {
+    pythonProcess.kill()
+    pythonProcess = null
+  }
+})
+
+process.on('SIGINT', () => {
+  if (pythonProcess) {
+    pythonProcess.kill()
+    pythonProcess = null
+  }
+  process.exit()
+})
 
