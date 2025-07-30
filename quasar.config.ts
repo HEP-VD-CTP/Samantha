@@ -199,10 +199,6 @@ export default defineConfig((ctx) => {
 
         // Windows only
         // win32metadata: { ... }
-        extraResource: [
-          './src-python/dist/main'
-          // You can add more files or folders here
-        ]
       },
 
       builder: {
