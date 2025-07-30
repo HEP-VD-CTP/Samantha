@@ -19,5 +19,5 @@ quasar build -m electron
 cp -r src-python/dist/main dist/electron/UnPackaged/main
 
 # repackage electron app
-npx electron-packager dist/electron/UnPackaged Samantha --platform=darwin --out=dist/electron/Packaged --overwrite
+npx electron-packager dist/electron/UnPackaged Samantha --platform=darwin --out=dist/electron/Packaged --overwrite  --icon=src-electron/icons/icon.png
 

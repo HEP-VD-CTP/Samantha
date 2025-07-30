@@ -4,6 +4,7 @@ package-lock.json
 src-python/dist
 src-python/build
 src-python/__pycache__
+main.spec
 
 # Logs
 logs
