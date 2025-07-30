@@ -5,6 +5,7 @@ src-python/dist
 src-python/build
 src-python/__pycache__
 main.spec
+.quasar
 
 # Logs
 logs
