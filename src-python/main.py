@@ -474,4 +474,4 @@ async def detect_endpoint(ws: WebSocket):
     await ws.close()
 
 if __name__ == "__main__": 
-  uvicorn.run("main:app", host="0.0.0.0", port=3000, ws_ping_interval=1, ws_ping_timeout=3600, ws_max_size=100 * 1024 * 1024 * 1024)
+  uvicorn.run(app, host="0.0.0.0", port=3000, ws_ping_interval=1, ws_ping_timeout=3600, ws_max_size=100 * 1024 * 1024 * 1024)

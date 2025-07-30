@@ -12,7 +12,7 @@
  **/
 
 
-import { createSSRApp } from 'vue'
+import { createApp } from 'vue'
 
 
 
@@ -46,10 +46,8 @@ import quasarUserOptions from './quasar-user-options.js'
 
 
 
-console.info('[Quasar] Running SSR.')
 
-
-const publicPath = `/`
+const publicPath = ``
 
 async function start ({
   app,
@@ -79,7 +77,7 @@ async function start ({
     // continue if we didn't fail to resolve the url
     if (href !== null) {
       window.location.href = href
-      
+      window.location.reload()
     }
   }
 
@@ -114,20 +112,17 @@ async function start ({
   app.use(router)
 
   
-    
-    // wait until router has resolved all async before hooks
-    // and async components...
-    router.isReady().then(() => {
-      
-      app.mount('#q-app')
-    })
+
     
 
+    
+      app.mount('#q-app')
+    
   
 
 }
 
-createQuasarApp(createSSRApp, quasarUserOptions)
+createQuasarApp(createApp, quasarUserOptions)
 
   .then(app => {
     // eventually remove this when Cordova/Capacitor/Electron support becomes old

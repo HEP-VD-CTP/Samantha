@@ -5,6 +5,9 @@ import { fileURLToPath } from 'url'
 import axios from 'axios'
 import fs from 'node:fs/promises'
 import { createWriteStream } from 'node:fs'
+import packageJson from '../package.json' assert { type: 'json' }
+import { spawn } from 'child_process'
+
 
 
 // needed in case process is undefined under Linux
@@ -13,6 +16,14 @@ const platform = process.platform || os.platform()
 const currentDir = fileURLToPath(new URL('.', import.meta.url))
 
 let mainWindow: BrowserWindow | undefined
+
+const pythonExecutable = path.resolve(currentDir, 'icons/main') // tray icon
+console.log(`Python executable path: ${pythonExecutable}`)
+// Start the Python process
+let pythonProcess: ReturnType<typeof spawn> | null = null
+pythonProcess = spawn(pythonExecutable, [], {
+  stdio: 'pipe'
+})
 
 async function createWindow() {
   /**
@@ -35,6 +46,13 @@ async function createWindow() {
       ),
     },
   })
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow?.setTitle(`Samantha ${packageJson.version}`)
+  })
+ 
+
+  
 
   if (process.env.DEV) {
     await mainWindow.loadURL(process.env.APP_URL)

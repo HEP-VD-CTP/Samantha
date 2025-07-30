@@ -3,6 +3,7 @@
 
 import { defineConfig } from '#q-app/wrappers';
 import { fileURLToPath } from 'node:url';
+import path from 'node:path'
 
 export default defineConfig((ctx) => {
   return {
@@ -198,6 +199,10 @@ export default defineConfig((ctx) => {
 
         // Windows only
         // win32metadata: { ... }
+        extraResource: [
+          './src-python/dist/main'
+          // You can add more files or folders here
+        ]
       },
 
       builder: {
