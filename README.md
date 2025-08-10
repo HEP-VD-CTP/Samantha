@@ -1,4 +1,4 @@
-# Samantha – A Video Anonymization Tool for Education 
+# <img src="public/favicon-16x16.png" alt="App Icon" width="20"/> Samantha – A Video Anonymization Tool for Education 
 
 > **Note:** ⚠️ Samantha is under active development. 
 Pre-built binaries and installation instructions will be provided soon. 
@@ -22,7 +22,7 @@ The use of video in education and research is growing, but privacy concerns and 
 - **Flexible Anonymization:** Supports both blurring and inpainting (removal) of faces and objects.
 - **Manual Review:** Allows users to review and adjust detected objects before anonymization.
 - **Privacy by Design:** Ensures compliance with GDPR, Swiss FADP, and other data protection laws.
-- **Cross-Platform:** Runs on macOS (Apple Silicon and Intel), <u>with planned support for Windows and Linux.</u>
+- **Cross-Platform:** Runs on macOS (Apple Silicon), <u>with planned support for Windows and Linux.</u>
 - **Open Source:** Freely available for adaptation and improvement by the educational and research community.
 
 ## How It Works
@@ -48,6 +48,10 @@ The use of video in education and research is growing, but privacy concerns and 
 
 Pre-built binaries for macOS are available in the [Releases](https://github.com/HEP-VD-CTP/Samantha/releases) section of this repository.  
 Download the latest `.pkg` file for easy installation on your Mac.
+
+> **Note:**  
+> Samantha requires a recent Mac with **Apple Silicon (M1, M2, or newer)** and **at least 16GB of RAM** for optimal performance.  
+> Older Intel-based Macs won't work.
 
 > **Note:** If you encounter a security warning when opening the app, please refer to the [official Apple instructions](https://support.apple.com/en-gb/guide/mac-help/mh40616/mac) for opening apps from unidentified developers.
 
